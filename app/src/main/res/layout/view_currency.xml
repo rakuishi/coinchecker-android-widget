@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/currency_image"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_centerVertical="true"
         android:layout_marginRight="16dp"
         tools:src="@drawable/icon_xrp" />

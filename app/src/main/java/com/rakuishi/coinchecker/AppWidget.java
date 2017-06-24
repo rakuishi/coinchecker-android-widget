@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.RemoteViews;
 
@@ -16,7 +17,7 @@ import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 import okhttp3.Call;
@@ -31,7 +32,6 @@ import okhttp3.Response;
  */
 public class AppWidget extends AppWidgetProvider {
 
-    private static final String TAG = AppWidget.class.getSimpleName();
     private static final String ROOT_VIEW_CLICK_ACTION = "app_widget_root_view_click_action";
     private static final String PACKAGE_NAME_COINCHECK = "jp.coincheck.android";
 
@@ -86,12 +86,12 @@ public class AppWidget extends AppWidgetProvider {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, IOException e) {
                 // do something
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 JsonAdapter<RateResponse> adapter = moshi.adapter(RateResponse.class);
                 final RateResponse rateResponse = adapter.fromJson(response.body().string());
                 mainHandler.post(new Runnable() {
@@ -108,22 +108,22 @@ public class AppWidget extends AppWidgetProvider {
     static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
                                            @Nullable RateResponse rateResponse) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
+        final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
-        views.setImageViewIcon(R.id.appwidget_coin_image, Icon.createWithResource(context, currency.getIconResId(context)));
-        views.setTextViewText(R.id.appwidget_coin_short_name_text, currency.unit.toUpperCase());
-        views.setTextViewText(R.id.appwidget_coin_name_text, currency.name);
-        String time = new SimpleDateFormat("kk:mm").format(new Date());
-        views.setTextViewText(R.id.appwidget_coin_time_text, time);
+        views.setImageViewIcon(R.id.appwidget_image, Icon.createWithResource(context, currency.getIconResId(context)));
+        views.setTextViewText(R.id.appwidget_unit_text, currency.unit.toUpperCase());
+        views.setTextViewText(R.id.appwidget_name_text, currency.name);
+        views.setTextViewText(R.id.appwidget_time_text, time);
         if (rateResponse != null) {
             String rate;
             try {
-                rate = String.format("%.3f", Double.valueOf(rateResponse.rate));
+                rate = String.format("%.2f", Double.valueOf(rateResponse.rate));
             } catch (Exception e) {
                 rate = rateResponse.rate;
             }
-            views.setTextViewText(R.id.appwidget_coin_price_text, rate + " JPY");
+            views.setTextViewText(R.id.appwidget_rate_text, "¥" + rate);
         }
 
         // Instruct the widget manager to update the widget
