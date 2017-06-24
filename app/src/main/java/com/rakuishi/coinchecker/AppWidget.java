@@ -17,7 +17,7 @@ import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -41,7 +41,7 @@ public class AppWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, "xrp_jpy");
+            updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
@@ -73,13 +73,13 @@ public class AppWidget extends AppWidgetProvider {
 
     // endregion
 
-    static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId,
-                     final String pair) {
+    static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
+        final Currency currency = Currency.getCurrency(appWidgetId);
         final OkHttpClient client = new OkHttpClient();
         final Moshi moshi = new Moshi.Builder().build();
         final Handler mainHandler = new Handler(Looper.getMainLooper());
         final Request request = new Request.Builder()
-                .url("https://coincheck.com/api/rate/" + pair)
+                .url("https://coincheck.com/api/rate/" + currency.getPair())
                 .get()
                 .tag(String.valueOf(appWidgetId))
                 .build();
@@ -98,7 +98,7 @@ public class AppWidget extends AppWidgetProvider {
                     @Override
                     public void run() {
                         // do something on Main Thread
-                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, pair, rateResponse);
+                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, rateResponse);
                     }
                 });
             }
@@ -106,13 +106,14 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
-                                String pair, @Nullable RateResponse rateResponse) {
+                                @Nullable RateResponse rateResponse) {
+        final Currency currency = Currency.getCurrency(appWidgetId);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
-        views.setImageViewIcon(R.id.appwidget_coin_image, Icon.createWithResource(context, R.drawable.icon_xrp));
-        views.setTextViewText(R.id.appwidget_coin_short_name_text, "XRP");
-        views.setTextViewText(R.id.appwidget_coin_name_text, "Ripple");
+        views.setImageViewIcon(R.id.appwidget_coin_image, Icon.createWithResource(context, currency.getIconResId(context)));
+        views.setTextViewText(R.id.appwidget_coin_short_name_text, currency.unit.toUpperCase());
+        views.setTextViewText(R.id.appwidget_coin_name_text, currency.name);
         String time = new SimpleDateFormat("kk:mm").format(new Date());
         views.setTextViewText(R.id.appwidget_coin_time_text, time);
         if (rateResponse != null) {
@@ -122,7 +123,7 @@ public class AppWidget extends AppWidgetProvider {
             } catch (Exception e) {
                 rate = rateResponse.rate;
             }
-            views.setTextViewText(R.id.appwidget_coin_price_text, "¥" + rate);
+            views.setTextViewText(R.id.appwidget_coin_price_text, rate + " JPY");
         }
 
         // Instruct the widget manager to update the widget
