@@ -34,8 +34,6 @@ public class AppWidget extends AppWidgetProvider {
     private static final String TAG = AppWidget.class.getSimpleName();
     private static final String ROOT_VIEW_CLICK_ACTION = "app_widget_root_view_click_action";
     private static final String PACKAGE_NAME_COINCHECK = "jp.coincheck.android";
-    private OkHttpClient client = new OkHttpClient();
-    private Moshi moshi = new Moshi.Builder().build();
 
     // region AppWidgetProvider
 
@@ -43,7 +41,7 @@ public class AppWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-            requestRate(context, appWidgetManager, appWidgetId, "xrp_jpy");
+            updateAppWidget(context, appWidgetManager, appWidgetId, "xrp_jpy");
         }
     }
 
@@ -52,7 +50,6 @@ public class AppWidget extends AppWidgetProvider {
         // When the user deletes the widget, delete the preference associated with it.
         for (int appWidgetId : appWidgetIds) {
             AppWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
-            cancel(appWidgetId);
         }
     }
 
@@ -76,8 +73,10 @@ public class AppWidget extends AppWidgetProvider {
 
     // endregion
 
-    void requestRate(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId,
+    static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId,
                      final String pair) {
+        final OkHttpClient client = new OkHttpClient();
+        final Moshi moshi = new Moshi.Builder().build();
         final Handler mainHandler = new Handler(Looper.getMainLooper());
         final Request request = new Request.Builder()
                 .url("https://coincheck.com/api/rate/" + pair)
@@ -99,33 +98,14 @@ public class AppWidget extends AppWidgetProvider {
                     @Override
                     public void run() {
                         // do something on Main Thread
-                        updateAppWidget(context, appWidgetManager, appWidgetId, pair, rateResponse);
+                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, pair, rateResponse);
                     }
                 });
             }
         });
     }
 
-    void cancel(int appWidgetId) {
-        for (Call call : client.dispatcher().queuedCalls()) {
-            if (call.request().tag().equals(getRequestTag(appWidgetId))) {
-                call.cancel();
-                break;
-            }
-        }
-        for (Call call : client.dispatcher().runningCalls()) {
-            if (call.request().tag().equals(getRequestTag(appWidgetId))) {
-                call.cancel();
-                break;
-            }
-        }
-    }
-
-    String getRequestTag(int appWidgetId) {
-        return String.valueOf(appWidgetId);
-    }
-
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
+    static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
                                 String pair, @Nullable RateResponse rateResponse) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
