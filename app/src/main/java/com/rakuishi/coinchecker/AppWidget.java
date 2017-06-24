@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -29,24 +30,13 @@ public class AppWidget extends AppWidgetProvider {
     private OkHttpClient client = new OkHttpClient();
     private Moshi moshi = new Moshi.Builder().build();
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
-
-        CharSequence widgetText = AppWidgetConfigureActivity.loadTitlePref(context, appWidgetId);
-        // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
-        views.setTextViewText(R.id.appwidget_text, widgetText);
-
-        // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }
+    // region AppWidgetProvider
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-            // updateAppWidget(context, appWidgetManager, appWidgetId);
-            requestRate(appWidgetId, "xrp_jpy");
+            requestRate(context, appWidgetManager, appWidgetId, "xrp_jpy");
         }
     }
 
@@ -69,7 +59,10 @@ public class AppWidget extends AppWidgetProvider {
         // Enter relevant functionality for when the last widget is disabled
     }
 
-    void requestRate(int appWidgetId, final String pair) {
+    // endregion
+
+    void requestRate(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId,
+                     final String pair) {
         final Handler mainHandler = new Handler(Looper.getMainLooper());
         final Request request = new Request.Builder()
                 .url("https://coincheck.com/api/rate/" + pair)
@@ -86,12 +79,12 @@ public class AppWidget extends AppWidgetProvider {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 JsonAdapter<Rate> adapter = moshi.adapter(Rate.class);
-                Rate rate = adapter.fromJson(response.body().string());
-                Log.d(TAG, pair + ": " + rate.rate);
+                final Rate rate = adapter.fromJson(response.body().string());
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         // do something on Main Thread
+                        updateAppWidget(context, appWidgetManager, appWidgetId, pair, rate);
                     }
                 });
             }
@@ -115,6 +108,19 @@ public class AppWidget extends AppWidgetProvider {
 
     String getRequestTag(int appWidgetId) {
         return String.valueOf(appWidgetId);
+    }
+
+    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
+                                String pair, @Nullable Rate rate) {
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+        views.setTextViewText(R.id.appwidget_coin_name_text, pair);
+        if (rate != null) {
+            views.setTextViewText(R.id.appwidget_coin_price_text, rate.rate);
+        }
+
+        // Instruct the widget manager to update the widget
+        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 }
 
