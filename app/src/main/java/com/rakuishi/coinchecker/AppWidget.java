@@ -1,12 +1,14 @@
 package com.rakuishi.coinchecker;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.squareup.moshi.JsonAdapter;
@@ -27,6 +29,8 @@ import okhttp3.Response;
 public class AppWidget extends AppWidgetProvider {
 
     private static final String TAG = AppWidget.class.getSimpleName();
+    private static final String ROOT_VIEW_CLICK_ACTION = "app_widget_root_view_click_action";
+    private static final String PACKAGE_NAME_COINCHECK = "jp.coincheck.android";
     private OkHttpClient client = new OkHttpClient();
     private Moshi moshi = new Moshi.Builder().build();
 
@@ -57,6 +61,14 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (intent.getAction().equals(ROOT_VIEW_CLICK_ACTION)) {
+            openAppIfPossible(context, PACKAGE_NAME_COINCHECK);
+        }
     }
 
     // endregion
@@ -114,6 +126,7 @@ public class AppWidget extends AppWidgetProvider {
                                 String pair, @Nullable Rate rate) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+        views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
         views.setTextViewText(R.id.appwidget_coin_name_text, pair);
         if (rate != null) {
             views.setTextViewText(R.id.appwidget_coin_price_text, rate.rate);
@@ -121,6 +134,26 @@ public class AppWidget extends AppWidgetProvider {
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
+
+    private static PendingIntent onClickRootView(Context context) {
+        Intent intent = new Intent(ROOT_VIEW_CLICK_ACTION);
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private static boolean openAppIfPossible(Context context, String packageName) {
+        PackageManager manager = context.getPackageManager();
+        try {
+            Intent i = manager.getLaunchIntentForPackage(packageName);
+            if (i == null) {
+                return false;
+            }
+            i.addCategory(Intent.CATEGORY_LAUNCHER);
+            context.startActivity(i);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 
