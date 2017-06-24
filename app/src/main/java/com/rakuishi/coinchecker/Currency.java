@@ -1,6 +1,7 @@
 package com.rakuishi.coinchecker;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 
@@ -26,9 +27,36 @@ public class Currency {
         return context.getResources().getIdentifier("icon_" + unit, "drawable", context.getPackageName());
     }
 
+    // region pref
+
+    private static final String PREFS_NAME = "com.rakuishi.coinchecker.currency";
+    private static final String PREF_PREFIX_KEY = "pref_";
+
+    public static void saveCurrencyPref(Context context, int appWidgetId, int currencyId) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.putInt(PREF_PREFIX_KEY + appWidgetId, currencyId);
+        prefs.apply();
+    }
+
+    public static Currency loadCurrencyPref(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+        int currencyId = prefs.getInt(PREF_PREFIX_KEY + appWidgetId, 0);
+        return getCurrency(currencyId);
+    }
+
+    public static void deleteCurrencyPref(Context context, int appWidgetId) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.remove(PREF_PREFIX_KEY + appWidgetId);
+        prefs.apply();
+    }
+
+    // endregion
+
+    // region defined currencies
+
     public static ArrayList<Currency> getCurrencies() {
         ArrayList<Currency> coins = new ArrayList<>();
-        for (int id = 1; id <= 12; id++) {
+        for (int id = 0; id < 12; id++) {
             coins.add(getCurrency(id));
         }
         return coins;
@@ -64,4 +92,6 @@ public class Currency {
                 return new Currency(11, "DASH", "dash");
         }
     }
+
+    // endregion
 }

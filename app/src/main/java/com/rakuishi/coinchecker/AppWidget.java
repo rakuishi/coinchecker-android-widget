@@ -17,7 +17,7 @@ import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -49,7 +49,7 @@ public class AppWidget extends AppWidgetProvider {
     public void onDeleted(Context context, int[] appWidgetIds) {
         // When the user deletes the widget, delete the preference associated with it.
         for (int appWidgetId : appWidgetIds) {
-            AppWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
+            Currency.deleteCurrencyPref(context, appWidgetId);
         }
     }
 
@@ -74,7 +74,7 @@ public class AppWidget extends AppWidgetProvider {
     // endregion
 
     static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
-        final Currency currency = Currency.getCurrency(appWidgetId);
+        final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
         final OkHttpClient client = new OkHttpClient();
         final Moshi moshi = new Moshi.Builder().build();
         final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -106,8 +106,8 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
-                                @Nullable RateResponse rateResponse) {
-        final Currency currency = Currency.getCurrency(appWidgetId);
+                                           @Nullable RateResponse rateResponse) {
+        final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
