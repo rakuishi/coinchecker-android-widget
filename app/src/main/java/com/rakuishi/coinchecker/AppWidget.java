@@ -90,13 +90,13 @@ public class AppWidget extends AppWidgetProvider {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                JsonAdapter<Rate> adapter = moshi.adapter(Rate.class);
-                final Rate rate = adapter.fromJson(response.body().string());
+                JsonAdapter<RateResponse> adapter = moshi.adapter(RateResponse.class);
+                final RateResponse rateResponse = adapter.fromJson(response.body().string());
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         // do something on Main Thread
-                        updateAppWidget(context, appWidgetManager, appWidgetId, pair, rate);
+                        updateAppWidget(context, appWidgetManager, appWidgetId, pair, rateResponse);
                     }
                 });
             }
@@ -123,13 +123,13 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
-                                String pair, @Nullable Rate rate) {
+                                String pair, @Nullable RateResponse rateResponse) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
         views.setTextViewText(R.id.appwidget_coin_name_text, pair);
-        if (rate != null) {
-            views.setTextViewText(R.id.appwidget_coin_price_text, rate.rate);
+        if (rateResponse != null) {
+            views.setTextViewText(R.id.appwidget_coin_price_text, rateResponse.rate);
         }
 
         // Instruct the widget manager to update the widget

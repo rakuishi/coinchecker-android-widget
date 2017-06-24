@@ -1,5 +1,5 @@
 package com.rakuishi.coinchecker;
 
-public class Rate {
+public class RateResponse {
     String rate;
 }
