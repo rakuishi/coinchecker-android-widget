@@ -12,9 +12,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.widget.RemoteViews;
 
-import com.squareup.moshi.Moshi;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -85,7 +87,6 @@ public class AppWidget extends AppWidgetProvider {
             return;
         }
         final OkHttpClient client = new OkHttpClient();
-        final Moshi moshi = new Moshi.Builder().build();
         final Handler mainHandler = new Handler(Looper.getMainLooper());
         final Request request = new Request.Builder()
                 .url("https://coincheck.com/api/rate/" + currency.getPair())
@@ -106,19 +107,20 @@ public class AppWidget extends AppWidgetProvider {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                RateResponse rate;
+                String parsedRate;
                 try {
                     // noinspection ConstantConditions
-                    rate = moshi.adapter(RateResponse.class).fromJson(response.body().string());
-                } catch (IOException | NullPointerException e) {
-                    rate = null;
+                    JSONObject json = new JSONObject(response.body().string());
+                    parsedRate = json.getString("rate");
+                } catch (JSONException e) {
+                    parsedRate = null;
                 }
 
-                final RateResponse rateResponse = rate;
+                final String rate = parsedRate;
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, rateResponse);
+                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, rate);
                     }
                 });
             }
@@ -126,7 +128,7 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     private static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
-                                                   @Nullable RateResponse rateResponse) {
+                                                   @Nullable String rate) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
         if (currency == null) {
             // This if statement is unnecessary.
@@ -141,16 +143,16 @@ public class AppWidget extends AppWidgetProvider {
         views.setTextViewText(R.id.appwidget_unit_text, currency.unit.toUpperCase());
         views.setTextViewText(R.id.appwidget_name_text, currency.name);
         views.setTextViewText(R.id.appwidget_time_text, time);
-        if (rateResponse == null) {
+        if (TextUtils.isEmpty(rate)) {
             views.setTextViewText(R.id.appwidget_rate_text, context.getString(R.string.failed));
         } else {
-            String rate;
+            String formattedRate;
             try {
-                rate = String.format("%.2f", Double.valueOf(rateResponse.rate));
+                formattedRate = String.format("%.2f", Double.valueOf(rate));
             } catch (NullPointerException e) {
-                rate = rateResponse.rate;
+                formattedRate = rate;
             }
-            views.setTextViewText(R.id.appwidget_rate_text, "¥" + rate);
+            views.setTextViewText(R.id.appwidget_rate_text, "¥" + formattedRate);
         }
 
         // Instruct the widget manager to update the widget
