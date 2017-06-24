@@ -81,6 +81,9 @@ public class AppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
+        if (currency == null) {
+            return;
+        }
         final OkHttpClient client = new OkHttpClient();
         final Moshi moshi = new Moshi.Builder().build();
         final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -114,6 +117,9 @@ public class AppWidget extends AppWidgetProvider {
     static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
                                            @Nullable RateResponse rateResponse) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
+        if (currency == null) {
+            return;
+        }
         final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 
@@ -62,11 +63,10 @@ public class Currency {
         return coins;
     }
 
-    @NonNull
+    @Nullable
     public static Currency getCurrency(int id) {
         switch (id) {
             case 0:
-            default:
                 return new Currency(0, "Bitcoin", "btc");
             case 1:
                 return new Currency(1, "Ethereum", "eth");
@@ -90,6 +90,8 @@ public class Currency {
                 return new Currency(10, "Litecoin", "ltc");
             case 11:
                 return new Currency(11, "DASH", "dash");
+            default:
+                return null;
         }
     }
 
