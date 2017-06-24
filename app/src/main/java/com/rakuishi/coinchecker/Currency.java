@@ -3,7 +3,6 @@ package com.rakuishi.coinchecker;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.ArrayList;

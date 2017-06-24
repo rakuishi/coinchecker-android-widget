@@ -14,7 +14,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.RemoteViews;
 
-import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
@@ -127,7 +126,7 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     private static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
-                                           @Nullable RateResponse rateResponse) {
+                                                   @Nullable RateResponse rateResponse) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
         if (currency == null) {
             // This if statement is unnecessary.

@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.text.Format;
 import java.util.ArrayList;
 
 public class CurrencyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
