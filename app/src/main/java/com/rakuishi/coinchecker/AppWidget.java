@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -15,6 +16,8 @@ import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -127,9 +130,19 @@ public class AppWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context));
-        views.setTextViewText(R.id.appwidget_coin_name_text, pair);
+        views.setImageViewIcon(R.id.appwidget_coin_image, Icon.createWithResource(context, R.drawable.icon_xrp));
+        views.setTextViewText(R.id.appwidget_coin_short_name_text, "XRP");
+        views.setTextViewText(R.id.appwidget_coin_name_text, "Ripple");
+        String time = new SimpleDateFormat("kk:mm").format(new Date());
+        views.setTextViewText(R.id.appwidget_coin_time_text, time);
         if (rateResponse != null) {
-            views.setTextViewText(R.id.appwidget_coin_price_text, rateResponse.rate);
+            String rate;
+            try {
+                rate = String.format("%.3f", Double.valueOf(rateResponse.rate));
+            } catch (Exception e) {
+                rate = rateResponse.rate;
+            }
+            views.setTextViewText(R.id.appwidget_coin_price_text, "¥" + rate);
         }
 
         // Instruct the widget manager to update the widget
