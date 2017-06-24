@@ -82,6 +82,7 @@ public class AppWidget extends AppWidgetProvider {
     static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
         if (currency == null) {
+            // Currency is not saved in pref.
             return;
         }
         final OkHttpClient client = new OkHttpClient();
@@ -95,18 +96,29 @@ public class AppWidget extends AppWidgetProvider {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(@NonNull Call call, IOException e) {
-                // do something
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, null);
+                    }
+                });
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                JsonAdapter<RateResponse> adapter = moshi.adapter(RateResponse.class);
-                final RateResponse rateResponse = adapter.fromJson(response.body().string());
+                RateResponse rate;
+                try {
+                    // noinspection ConstantConditions
+                    rate = moshi.adapter(RateResponse.class).fromJson(response.body().string());
+                } catch (IOException | NullPointerException e) {
+                    rate = null;
+                }
+
+                final RateResponse rateResponse = rate;
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // do something on Main Thread
                         updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, rateResponse);
                     }
                 });
@@ -114,10 +126,12 @@ public class AppWidget extends AppWidgetProvider {
         });
     }
 
-    static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
+    private static void updateAppWidgetRemoteViews(Context context, AppWidgetManager appWidgetManager, int appWidgetId,
                                            @Nullable RateResponse rateResponse) {
         final Currency currency = Currency.loadCurrencyPref(context, appWidgetId);
         if (currency == null) {
+            // This if statement is unnecessary.
+            // The currency is checked in `updateAppWidget()` before this method.
             return;
         }
         final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
@@ -128,11 +142,13 @@ public class AppWidget extends AppWidgetProvider {
         views.setTextViewText(R.id.appwidget_unit_text, currency.unit.toUpperCase());
         views.setTextViewText(R.id.appwidget_name_text, currency.name);
         views.setTextViewText(R.id.appwidget_time_text, time);
-        if (rateResponse != null) {
+        if (rateResponse == null) {
+            views.setTextViewText(R.id.appwidget_rate_text, context.getString(R.string.failed));
+        } else {
             String rate;
             try {
                 rate = String.format("%.2f", Double.valueOf(rateResponse.rate));
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 rate = rateResponse.rate;
             }
             views.setTextViewText(R.id.appwidget_rate_text, "¥" + rate);
