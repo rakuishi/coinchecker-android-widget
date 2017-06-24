@@ -3,6 +3,7 @@ package com.rakuishi.coinchecker;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -68,6 +69,11 @@ public class AppWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
         if (intent.getAction().equals(ROOT_VIEW_CLICK_ACTION)) {
             openAppIfPossible(context, PACKAGE_NAME_COINCHECK);
+
+            // Reload rate
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+            onUpdate(context, appWidgetManager, appWidgetIds);
         }
     }
 
