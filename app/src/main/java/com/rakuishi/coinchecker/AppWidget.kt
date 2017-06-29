@@ -110,9 +110,7 @@ class AppWidget : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.app_widget)
             views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context))
             views.setImageViewIcon(R.id.appwidget_image, Icon.createWithResource(context, currency.getIconResId(context)))
-            views.setTextViewText(R.id.appwidget_unit_text, currency.unit.toUpperCase())
-            views.setTextViewText(R.id.appwidget_name_text, currency.name)
-            views.setTextViewText(R.id.appwidget_time_text, time)
+            views.setTextViewText(R.id.appwidget_time_text, currency.unit.toUpperCase() + " " + time)
             if (TextUtils.isEmpty(rate)) {
                 views.setTextViewText(R.id.appwidget_rate_text, context.getString(R.string.failed))
             } else {
