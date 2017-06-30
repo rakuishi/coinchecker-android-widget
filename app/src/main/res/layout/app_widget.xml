@@ -8,45 +8,49 @@
     tools:layout_width="110dp"
     tools:layout_height="78dp">
 
-    <ImageView
-        android:id="@+id/appwidget_image"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginLeft="-12dp"
-        android:layout_marginTop="-12dp"
-        android:alpha="0.5"
-        tools:src="@drawable/icon_xrp" />
-
-    <LinearLayout
-        android:id="@+id/appwidget_info_layout"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
-        android:gravity="right"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:padding="16dp">
 
-        <TextView
-            android:id="@+id/appwidget_rate_text"
-            android:layout_width="wrap_content"
+        <ImageView
+            android:id="@+id/appwidget_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.75"
+            android:scaleType="fitStart"
+            tools:src="@drawable/icon_xrp" />
+
+        <LinearLayout
+            android:id="@+id/appwidget_info_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lines="1"
-            android:text=""
-            android:textColor="#212121"
-            android:textSize="20sp"
-            tools:text="¥33.93" />
+            android:layout_centerVertical="true"
+            android:gravity="right"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/appwidget_time_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            android:text=""
-            android:textColor="#757575"
-            android:textSize="14sp"
-            tools:text="10:30" />
+            <TextView
+                android:id="@+id/appwidget_rate_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:text=""
+                android:textColor="#212121"
+                android:textSize="20sp"
+                tools:text="¥33.93" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/appwidget_time_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:text=""
+                android:textColor="#757575"
+                android:textSize="14sp"
+                tools:text="10:30" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>
