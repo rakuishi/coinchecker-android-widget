@@ -16,6 +16,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -126,7 +127,7 @@ class AppWidget : AppWidgetProvider() {
                 Rate.saveRatePref(context, Rate(currency.id, rateText, updatedAtMillis))
             }
 
-            val timeText = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(updatedAtMillis))
+            val timeText = SimpleDateFormat("hh:mm", Locale.US).format(Date(updatedAtMillis))
             val formattedTimeText = String.format("%s %s", currency.unit.toUpperCase(), timeText)
             views.setTextViewText(R.id.appwidget_time_text, formattedTimeText)
             views.setTextViewText(R.id.appwidget_rate_text, formattedRateText)
