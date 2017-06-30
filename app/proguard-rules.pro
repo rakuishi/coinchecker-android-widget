@@ -28,3 +28,8 @@
 -dontwarn okio.**
 -dontwarn javax.annotation.Nullable
 -dontwarn javax.annotation.ParametersAreNonnullByDefault
+
+# moshi
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.* <methods>;
+}
