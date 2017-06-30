@@ -22,9 +22,9 @@ class Currency private constructor(internal var id: Int, internal var name: Stri
         private val PREF_PREFIX_KEY = "pref_"
 
         fun saveCurrencyPref(context: Context, appWidgetId: Int, currencyId: Int) {
-            val prefs = context.getSharedPreferences(PREFS_NAME, 0).edit()
-            prefs.putInt(PREF_PREFIX_KEY + appWidgetId, currencyId)
-            prefs.apply()
+            val editor = context.getSharedPreferences(PREFS_NAME, 0).edit()
+            editor.putInt(PREF_PREFIX_KEY + appWidgetId, currencyId)
+            editor.apply()
         }
 
         fun loadCurrencyPref(context: Context, appWidgetId: Int): Currency? {
@@ -34,9 +34,9 @@ class Currency private constructor(internal var id: Int, internal var name: Stri
         }
 
         fun deleteCurrencyPref(context: Context, appWidgetId: Int) {
-            val prefs = context.getSharedPreferences(PREFS_NAME, 0).edit()
-            prefs.remove(PREF_PREFIX_KEY + appWidgetId)
-            prefs.apply()
+            val editor = context.getSharedPreferences(PREFS_NAME, 0).edit()
+            editor.remove(PREF_PREFIX_KEY + appWidgetId)
+            editor.apply()
         }
 
         // endregion

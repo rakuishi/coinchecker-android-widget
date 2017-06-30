@@ -85,47 +85,62 @@ class AppWidget : AppWidgetProvider() {
 
                 @Throws(IOException::class)
                 override fun onResponse(call: Call, response: Response) {
-                    var parsedRate: String?
-                    try {
-
-                        val json = JSONObject(response.body()!!.string())
-                        parsedRate = json.getString("rate")
-                    } catch (e: JSONException) {
-                        parsedRate = null
-                    }
-
-                    val rate = parsedRate
+                    val rate = parseRate(response)
                     mainHandler.post { updateAppWidgetRemoteViews(context, appWidgetManager, appWidgetId, rate) }
                 }
             })
         }
 
-        private fun updateAppWidgetRemoteViews(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int,
-                                               rate: String?) {
-            val currency = Currency.loadCurrencyPref(context, appWidgetId) ?: // This if statement is unnecessary.
+        private fun parseRate(response : Response) : String? {
+            try {
+                val json = JSONObject(response.body()!!.string())
+                return json.getString("rate")
+            } catch (e: JSONException) {
+                return null
+            }
+        }
+
+        private fun updateAppWidgetRemoteViews(context: Context, appWidgetManager: AppWidgetManager,
+                                               appWidgetId: Int, rateText: String?) {
+            val currency = Currency.loadCurrencyPref(context, appWidgetId) ?:
+                    // This if statement is unnecessary.
                     // The currency is checked in `updateAppWidget()` before this method.
                     return
-            val time = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date())
 
             val views = RemoteViews(context.packageName, R.layout.app_widget)
             views.setOnClickPendingIntent(R.id.appwidget_root, onClickRootView(context))
             views.setImageViewIcon(R.id.appwidget_image, Icon.createWithResource(context, currency.getIconResId(context)))
-            views.setTextViewText(R.id.appwidget_time_text, currency.unit.toUpperCase() + " " + time)
-            if (TextUtils.isEmpty(rate)) {
-                views.setTextViewText(R.id.appwidget_rate_text, context.getString(R.string.failed))
-            } else {
-                var formattedRate: String
-                try {
-                    formattedRate = String.format("%.2f", java.lang.Double.valueOf(rate))
-                } catch (e: NullPointerException) {
-                    formattedRate = rate!! // 空文字確認済
-                }
 
-                views.setTextViewText(R.id.appwidget_rate_text, "¥" + formattedRate)
+            val formattedRateText: String
+            var updatedAtMillis = System.currentTimeMillis()
+            if (TextUtils.isEmpty(rateText)) {
+                val rate = Rate.loadRatePref(context, currency.id)
+                if (rate == null) {
+                    formattedRateText = context.getString(R.string.failed)
+                } else {
+                    formattedRateText = getFormattedRate(rate.value)
+                    updatedAtMillis = rate.updatedAtMillis
+                }
+            } else {
+                formattedRateText = getFormattedRate(rateText!!)
+                Rate.saveRatePref(context, Rate(currency.id, rateText, updatedAtMillis))
             }
+
+            val timeText = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(updatedAtMillis))
+            val formattedTimeText = String.format("%s %s", currency.unit.toUpperCase(), timeText)
+            views.setTextViewText(R.id.appwidget_time_text, formattedTimeText)
+            views.setTextViewText(R.id.appwidget_rate_text, formattedRateText)
 
             // Instruct the widget manager to update the widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        private fun getFormattedRate(rate: String): String {
+            try {
+                return String.format("¥%.1f", java.lang.Float.valueOf(rate))
+            } catch (e: NullPointerException) {
+                return String.format("¥%s", rate)
+            }
         }
 
         private fun onClickRootView(context: Context): PendingIntent {
