@@ -8,6 +8,7 @@
 
 - [Coincheck API](https://coincheck.com/documents/exchange/api)
 - [square/okhttp](https://github.com/square/okhttp)
+- [square/moshi](https://github.com/square/moshi)
 - [allienworks/cryptocoins](https://github.com/allienworks/cryptocoins)
 
 ## License
